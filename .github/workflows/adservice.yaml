@@ -1,0 +1,25 @@
+name: AdService CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/adservice/**'
+      - '.github/workflows/adservice.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/adservice/**'
+
+jobs:
+  build-adservice:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/build-service-template.yaml
+    with:
+      service-name: adservice
+      service-path: src/adservice
+      dockerfile: Dockerfile
+      registry: docker.io
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

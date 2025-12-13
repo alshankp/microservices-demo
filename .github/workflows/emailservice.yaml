@@ -1,0 +1,25 @@
+name: EmailService CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/emailservice/**'
+      - '.github/workflows/emailservice.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/emailservice/**'
+
+jobs:
+  build-emailservice:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/build-service-template.yaml
+    with:
+      service-name: emailservice
+      service-path: src/emailservice
+      dockerfile: Dockerfile
+      registry: docker.io
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

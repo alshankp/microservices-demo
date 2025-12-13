@@ -1,0 +1,12 @@
+{
+    "ref": "refs/heads/main",
+    "repository": {
+        "name": "microservices-demo",
+        "full_name": "codysharma/microservices-demo"
+    },
+    "head_commit": {
+        "modified": [
+            "src/emailservice/main.py"
+        ]
+    }
+}

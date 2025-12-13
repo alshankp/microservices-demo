@@ -1,0 +1,25 @@
+name: PaymentService CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/paymentservice/**'
+      - '.github/workflows/paymentservice.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/paymentservice/**'
+
+jobs:
+  build-paymentservice:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/build-service-template.yaml
+    with:
+      service-name: paymentservice
+      service-path: src/paymentservice
+      dockerfile: Dockerfile
+      registry: docker.io
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

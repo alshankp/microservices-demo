@@ -1,0 +1,98 @@
+name: Build Service Template
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        description: 'Name of the service to build'
+        required: true
+        type: string
+      service-path:
+        description: 'Path to the service directory'
+        required: false
+        type: string
+        default: ''
+      dockerfile:
+        description: 'Dockerfile name'
+        required: false
+        type: string
+        default: 'Dockerfile'
+      registry:
+        description: 'Docker registry URL'
+        required: false
+        type: string
+        default: 'docker.io'
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Generate tags and paths
+        id: meta
+        run: |
+          SERVICE_PATH="${{ inputs.service-path }}"
+          if [ -z "$SERVICE_PATH" ]; then
+            SERVICE_PATH="src/${{ inputs.service-name }}"
+          fi
+          
+          USERNAME="${{ secrets.DOCKER_USERNAME }}"
+          SERVICE="${{ inputs.service-name }}"
+          
+          # Sequential tag using run number
+          SEQUENTIAL_TAG="${{ github.run_number }}"
+          
+          # Full image names (docker.io format: username/servicename:tag)
+          IMAGE_BASE="${USERNAME}/${SERVICE}"
+          TAG_LATEST="${IMAGE_BASE}:latest"
+          TAG_SEQUENTIAL="${IMAGE_BASE}:${SEQUENTIAL_TAG}"
+          
+          echo "service-path=${SERVICE_PATH}" >> $GITHUB_OUTPUT
+          echo "tag-latest=${TAG_LATEST}" >> $GITHUB_OUTPUT
+          echo "tag-sequential=${TAG_SEQUENTIAL}" >> $GITHUB_OUTPUT
+          echo "image-base=${IMAGE_BASE}" >> $GITHUB_OUTPUT
+          
+          echo "🏗️  Building service: ${SERVICE}"
+          echo "📁 Service path: ${SERVICE_PATH}"
+          echo "📦 Latest tag: ${TAG_LATEST}"
+          echo "📦 Sequential tag: ${TAG_SEQUENTIAL}"
+
+      # Step 2: Build image with serviceName:sequential tag and latest tag
+      # Step 3: Push both to docker registry
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ steps.meta.outputs.service-path }}
+          file: ${{ steps.meta.outputs.service-path }}/${{ inputs.dockerfile }}
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.tag-latest }}
+            ${{ steps.meta.outputs.tag-sequential }}
+          cache-from: type=gha,scope=${{ inputs.service-name }}
+          cache-to: type=gha,mode=max,scope=${{ inputs.service-name }}
+
+      - name: Build summary
+        run: |
+          echo "✅ Successfully built and pushed ${{ inputs.service-name }}:"
+          echo "   📦 Latest: ${{ steps.meta.outputs.tag-latest }}"
+          echo "   📦 Sequential: ${{ steps.meta.outputs.tag-sequential }}"
+          echo "   🔢 Build Number: ${{ github.run_number }}"
+          echo "   📁 Built from: ${{ steps.meta.outputs.service-path }}"

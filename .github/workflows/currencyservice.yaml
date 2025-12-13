@@ -1,0 +1,25 @@
+name: CurrencyService CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/currencyservice/**'
+      - '.github/workflows/currencyservice.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/currencyservice/**'
+
+jobs:
+  build-currencyservice:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/build-service-template.yaml
+    with:
+      service-name: currencyservice
+      service-path: src/currencyservice
+      dockerfile: Dockerfile
+      registry: docker.io
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

@@ -1,0 +1,25 @@
+name: CheckoutService CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/checkoutservice/**'
+      - '.github/workflows/checkoutservice.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/checkoutservice/**'
+
+jobs:
+  build-checkoutservice:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/build-service-template.yaml
+    with:
+      service-name: checkoutservice
+      service-path: src/checkoutservice
+      dockerfile: Dockerfile
+      registry: docker.io
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
