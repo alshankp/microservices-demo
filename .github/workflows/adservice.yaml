@@ -19,7 +19,6 @@ jobs:
       service-name: adservice
       service-path: src/adservice
       dockerfile: Dockerfile
-      registry: docker.io
       k8s-repo: github.com/c0dysharma/microservices-k8s.git
       k8s-values-file: values/ad-service-values.yaml
     secrets:

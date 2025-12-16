@@ -16,11 +16,6 @@ on:
         required: false
         type: string
         default: 'Dockerfile'
-      registry:
-        description: 'Docker registry URL'
-        required: false
-        type: string
-        default: 'docker.io'
       k8s-repo:
         description: 'Kubernetes repository URL'
         required: true
@@ -46,58 +41,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Registry
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          registry: ${{ inputs.registry }}
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Generate tags and paths
-        id: meta
-        run: |
-          SERVICE_PATH="${{ inputs.service-path }}"
-          if [ -z "$SERVICE_PATH" ]; then
-            SERVICE_PATH="src/${{ inputs.service-name }}"
-          fi
-          
-          USERNAME="${{ secrets.DOCKER_USERNAME }}"
-          SERVICE="${{ inputs.service-name }}"
-          SEQUENTIAL_TAG="${{ github.run_number }}"
-          
-          IMAGE_BASE="${USERNAME}/${SERVICE}"
-          TAG_LATEST="${IMAGE_BASE}:latest"
-          TAG_SEQUENTIAL="${IMAGE_BASE}:${SEQUENTIAL_TAG}"
-          
-          K8S_VALUES_FILE="${{ inputs.k8s-values-file }}"
-          if [ -z "$K8S_VALUES_FILE" ]; then
-            K8S_VALUES_FILE="values/${{ inputs.service-name }}-values.yaml"
-          fi
-          
-          echo "service-path=${SERVICE_PATH}" >> $GITHUB_OUTPUT
-          echo "tag-latest=${TAG_LATEST}" >> $GITHUB_OUTPUT
-          echo "tag-sequential=${TAG_SEQUENTIAL}" >> $GITHUB_OUTPUT
-          echo "image-base=${IMAGE_BASE}" >> $GITHUB_OUTPUT
-          echo "k8s-values-file=${K8S_VALUES_FILE}" >> $GITHUB_OUTPUT
-
-      - name: Build and push Docker image
+      - name: Build & Push Service Image
         uses: docker/build-push-action@v5
         with:
-          context: ${{ steps.meta.outputs.service-path }}
-          file: ${{ steps.meta.outputs.service-path }}/${{ inputs.dockerfile }}
-          platforms: linux/amd64,linux/arm64
+          context: ${{ inputs.service-path }}
+          file: ${{ inputs.service-path }}/${{ inputs.dockerfile }}
           push: true
-          tags: |
-            ${{ steps.meta.outputs.tag-latest }}
-            ${{ steps.meta.outputs.tag-sequential }}
-          cache-from: type=gha,scope=${{ inputs.service-name }}
-          cache-to: type=gha,mode=max,scope=${{ inputs.service-name }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}:${{ github.run_number }}
 
       - name: Checkout K8s repository
-        if: ${{ inputs.k8s-repo }}
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.k8s-repo }}
@@ -105,18 +63,16 @@ jobs:
           path: k8s-repo
 
       - name: Update values file
-        if: ${{ inputs.k8s-repo }}
         run: |
           cd k8s-repo
-          VALUES_FILE="${{ steps.meta.outputs.k8s-values-file }}"
+          VALUES_FILE="${{ inputs.k8s-values-file }}"
+          NEW_IMAGE="${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}"
           NEW_TAG="${{ github.run_number }}"
-          NEW_IMAGE="${{ steps.meta.outputs.image-base }}"
           
           sed -i "s|appImage: .*|appImage: ${NEW_IMAGE}|g" "$VALUES_FILE"
           sed -i "s|appVersion: .*|appVersion: ${NEW_TAG}|g" "$VALUES_FILE"
 
       - name: Commit and push changes
-        if: ${{ inputs.k8s-repo }}
         run: |
           cd k8s-repo
           git config --local user.email "action@github.com"
