@@ -17,7 +17,7 @@ on:
         type: string
         default: 'Dockerfile'
       k8s-repo:
-        description: 'Kubernetes repository URL'
+        description: 'Kubernetes repository (owner/repo), e.g. c0dysharma/microservices-k8s'
         required: true
         type: string
       k8s-values-file:
@@ -30,8 +30,6 @@ on:
       DOCKER_PASSWORD:
         required: true
       K8S_REPO_TOKEN:
-        required: true
-      GH_USER:
         required: true
 
 jobs:
@@ -79,5 +77,8 @@ jobs:
           git config --local user.name "GitHub Action"
           
           git add .
-          git commit -m "🚀 Update ${{ inputs.service-name }} image to tag ${{ github.run_number }}"
-          git push https://${{ secrets.GH_USER }}:${{ secrets.K8S_REPO_TOKEN }}@${{ inputs.k8s-repo }} main
+          git commit -m "🚀 Update ${{ inputs.service-name }} image to tag ${{ github.run_number }}" || echo "No changes to commit"
+          git pull --rebase origin main || true
+          
+          GIT_REMOTE="https://x-access-token:${{ secrets.K8S_REPO_TOKEN }}@github.com/${{ inputs.k8s-repo }}.git"
+          git push "$GIT_REMOTE" HEAD:main
