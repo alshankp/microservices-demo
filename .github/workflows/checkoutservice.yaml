@@ -20,6 +20,10 @@ jobs:
       service-path: src/checkoutservice
       dockerfile: Dockerfile
       registry: docker.io
+      k8s-repo: github.com/c0dysharma/microservices-k8s.git
+      k8s-values-file: values/checkout-service-values.yaml
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      K8S_REPO_TOKEN: ${{ secrets.K8S_REPO_TOKEN }}
+      GH_USER: ${{ secrets.GH_USER }}
