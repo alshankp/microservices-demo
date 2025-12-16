@@ -25,4 +25,3 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
       K8S_REPO_TOKEN: ${{ secrets.K8S_REPO_TOKEN }}
-      GH_USER: ${{ secrets.GH_USER }}

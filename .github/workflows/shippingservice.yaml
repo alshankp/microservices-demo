@@ -1,26 +1,26 @@
-name: Frontend CI
+name: ShippingService CI
 
 on:
   push:
     branches: [main]
     paths:
-      - 'src/frontend/**'
-      - '.github/workflows/frontend.yaml'
+      - 'src/shippingservice/**'
+      - '.github/workflows/shippingservice.yaml'
   pull_request:
     branches: [main]
     paths:
-      - 'src/frontend/**'
+      - 'src/shippingservice/**'
 
 jobs:
-  build-frontend:
+  build-shippingservice:
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/build-service-template.yaml
     with:
-      service-name: frontend
-      service-path: src/frontend
+      service-name: shippingservice
+      service-path: src/shippingservice
       dockerfile: Dockerfile
       k8s-repo: c0dysharma/microservices-demo-k8s
-      k8s-values-file: values/frontend-values.yaml
+      k8s-values-file: values/shipping-service-values.yaml
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

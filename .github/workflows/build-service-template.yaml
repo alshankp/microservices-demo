@@ -65,7 +65,7 @@ jobs:
         run: |
           cd k8s-repo
           VALUES_FILE="${{ inputs.k8s-values-file }}"
-          NEW_IMAGE="${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}"
+          NEW_IMAGE="docker.io/${{ secrets.DOCKER_USERNAME }}/${{ inputs.service-name }}"
           NEW_TAG="${{ github.run_number }}"
           
           sed -i "s|appImage: .*|appImage: ${NEW_IMAGE}|g" "$VALUES_FILE"
