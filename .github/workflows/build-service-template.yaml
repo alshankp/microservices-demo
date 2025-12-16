@@ -57,6 +57,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.k8s-repo }}
+          ref: main
           token: ${{ secrets.K8S_REPO_TOKEN }}
           path: k8s-repo
 
