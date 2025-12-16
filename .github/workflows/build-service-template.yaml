@@ -9,9 +9,8 @@ on:
         type: string
       service-path:
         description: 'Path to the service directory'
-        required: false
+        required: true
         type: string
-        default: ''
       dockerfile:
         description: 'Dockerfile name'
         required: false
@@ -22,17 +21,28 @@ on:
         required: false
         type: string
         default: 'docker.io'
+      k8s-repo:
+        description: 'Kubernetes repository URL'
+        required: true
+        type: string
+      k8s-values-file:
+        description: 'Path to values file in k8s repo'
+        required: true
+        type: string
     secrets:
       DOCKER_USERNAME:
         required: true
       DOCKER_PASSWORD:
+        required: true
+      K8S_REPO_TOKEN:
+        required: true
+      GH_USER:
         required: true
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -56,32 +66,29 @@ jobs:
           
           USERNAME="${{ secrets.DOCKER_USERNAME }}"
           SERVICE="${{ inputs.service-name }}"
-          
-          # Sequential tag using run number
           SEQUENTIAL_TAG="${{ github.run_number }}"
           
-          # Full image names (docker.io format: username/servicename:tag)
           IMAGE_BASE="${USERNAME}/${SERVICE}"
           TAG_LATEST="${IMAGE_BASE}:latest"
           TAG_SEQUENTIAL="${IMAGE_BASE}:${SEQUENTIAL_TAG}"
+          
+          K8S_VALUES_FILE="${{ inputs.k8s-values-file }}"
+          if [ -z "$K8S_VALUES_FILE" ]; then
+            K8S_VALUES_FILE="values/${{ inputs.service-name }}-values.yaml"
+          fi
           
           echo "service-path=${SERVICE_PATH}" >> $GITHUB_OUTPUT
           echo "tag-latest=${TAG_LATEST}" >> $GITHUB_OUTPUT
           echo "tag-sequential=${TAG_SEQUENTIAL}" >> $GITHUB_OUTPUT
           echo "image-base=${IMAGE_BASE}" >> $GITHUB_OUTPUT
-          
-          echo "🏗️  Building service: ${SERVICE}"
-          echo "📁 Service path: ${SERVICE_PATH}"
-          echo "📦 Latest tag: ${TAG_LATEST}"
-          echo "📦 Sequential tag: ${TAG_SEQUENTIAL}"
+          echo "k8s-values-file=${K8S_VALUES_FILE}" >> $GITHUB_OUTPUT
 
-      # Step 2: Build image with serviceName:sequential tag and latest tag
-      # Step 3: Push both to docker registry
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: ${{ steps.meta.outputs.service-path }}
           file: ${{ steps.meta.outputs.service-path }}/${{ inputs.dockerfile }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ steps.meta.outputs.tag-latest }}
@@ -89,10 +96,32 @@ jobs:
           cache-from: type=gha,scope=${{ inputs.service-name }}
           cache-to: type=gha,mode=max,scope=${{ inputs.service-name }}
 
-      - name: Build summary
+      - name: Checkout K8s repository
+        if: ${{ inputs.k8s-repo }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.k8s-repo }}
+          token: ${{ secrets.K8S_REPO_TOKEN }}
+          path: k8s-repo
+
+      - name: Update values file
+        if: ${{ inputs.k8s-repo }}
         run: |
-          echo "✅ Successfully built and pushed ${{ inputs.service-name }}:"
-          echo "   📦 Latest: ${{ steps.meta.outputs.tag-latest }}"
-          echo "   📦 Sequential: ${{ steps.meta.outputs.tag-sequential }}"
-          echo "   🔢 Build Number: ${{ github.run_number }}"
-          echo "   📁 Built from: ${{ steps.meta.outputs.service-path }}"
+          cd k8s-repo
+          VALUES_FILE="${{ steps.meta.outputs.k8s-values-file }}"
+          NEW_TAG="${{ github.run_number }}"
+          NEW_IMAGE="${{ steps.meta.outputs.image-base }}"
+          
+          sed -i "s|appImage: .*|appImage: ${NEW_IMAGE}|g" "$VALUES_FILE"
+          sed -i "s|appVersion: .*|appVersion: ${NEW_TAG}|g" "$VALUES_FILE"
+
+      - name: Commit and push changes
+        if: ${{ inputs.k8s-repo }}
+        run: |
+          cd k8s-repo
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          git add .
+          git commit -m "🚀 Update ${{ inputs.service-name }} image to tag ${{ github.run_number }}"
+          git push https://${{ secrets.GH_USER }}:${{ secrets.K8S_REPO_TOKEN }}@${{ inputs.k8s-repo }} main

@@ -1,0 +1,24 @@
+{
+    "ref": "refs/heads/main",
+    "repository": {
+        "name": "microservices-demo",
+        "full_name": "codysharma/microservices-demo"
+    },
+    "head_commit": {
+        "modified": [
+            "src/adservice/src/main/java/hipstershop/AdService.java"
+        ]
+    },
+    "pusher": {
+        "name": "codysharma"
+    },
+    "commits": [
+        {
+            "id": "abc123",
+            "message": "Update adservice implementation",
+            "modified": [
+                "src/adservice/src/main/java/hipstershop/AdService.java"
+            ]
+        }
+    ]
+}
