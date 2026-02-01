@@ -31,10 +31,11 @@ jobs:
         run: |
           docker build -t ${{ inputs.service_name }} ./src/${{ inputs.service_name }}
 
-      - name: Push Image To ECR
+      - name: Tag and Push Image
         run: |
           docker tag ${{ inputs.service_name }}:latest \
-          667516053986.dkr.ecr.ap-south-1.amazonaws.com/microservices-demo:latest
+          667516053986.dkr.ecr.ap-south-1.amazonaws.com/${{ inputs.service_name }}:latest
 
           docker push \
-          667516053986.dkr.ecr.ap-south-1.amazonaws.com/microservices-demo:latest
+          667516053986.dkr.ecr.ap-south-1.amazonaws.com/${{ inputs.service_name }}:latest
+
