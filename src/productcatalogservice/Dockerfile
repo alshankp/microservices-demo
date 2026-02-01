@@ -41,3 +41,4 @@ ENV GOTRACEBACK=single
 EXPOSE 3550
 ENTRYPOINT ["/src/server"]
 # trigger
+# rebuild

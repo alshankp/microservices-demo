@@ -41,3 +41,4 @@ ENV GOTRACEBACK=single
 EXPOSE 5050
 ENTRYPOINT ["/src/checkoutservice"]
 # trigger
+# rebuild

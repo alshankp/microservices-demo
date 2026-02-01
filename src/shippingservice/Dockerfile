@@ -41,3 +41,4 @@ ENV GOTRACEBACK=single
 EXPOSE 50051
 ENTRYPOINT ["/src/shippingservice"]
 # trigger
+# rebuild

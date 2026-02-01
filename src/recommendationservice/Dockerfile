@@ -44,3 +44,4 @@ EXPOSE 8080
 
 ENTRYPOINT ["python", "recommendation_server.py"]
 # trigger
+# rebuild
