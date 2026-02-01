@@ -1,0 +1,130 @@
+name: Microservices CI Orchestrator
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+
+  detect:
+    runs-on: ubuntu-latest
+
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      cart: ${{ steps.filter.outputs.cart }}
+      checkout: ${{ steps.filter.outputs.checkout }}
+      currency: ${{ steps.filter.outputs.currency }}
+      email: ${{ steps.filter.outputs.email }}
+      payment: ${{ steps.filter.outputs.payment }}
+      productcatalog: ${{ steps.filter.outputs.productcatalog }}
+      recommendation: ${{ steps.filter.outputs.recommendation }}
+      shipping: ${{ steps.filter.outputs.shipping }}
+      ad: ${{ steps.filter.outputs.ad }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - "src/frontend/**"
+
+            cart:
+              - "src/cartservice/**"
+
+            checkout:
+              - "src/checkoutservice/**"
+
+            currency:
+              - "src/currencyservice/**"
+
+            email:
+              - "src/emailservice/**"
+
+            payment:
+              - "src/paymentservice/**"
+
+            productcatalog:
+              - "src/productcatalogservice/**"
+
+            recommendation:
+              - "src/recommendationservice/**"
+
+            shipping:
+              - "src/shippingservice/**"
+
+            ad:
+              - "src/adservice/**"
+
+
+  frontend:
+    needs: detect
+    if: needs.detect.outputs.frontend == 'true'
+    uses: ./.github/workflows/build-template.yml
+    with:
+      service_name: frontend
+
+  cart:
+    needs: detect
+    if: needs.detect.outputs.cart == 'true'
+    uses: ./.github/workflows/build-template.yml
+    with:
+      service_name: cartservice
+
+  checkout:
+    needs: detect
+    if: needs.detect.outputs.checkout == 'true'
+    uses: ./.github/workflows/build-template.yml
+    with:
+      service_name: checkoutservice
+
+  currency:
+    needs: detect
+    if: needs.detect.outputs.currency == 'true'
+    uses: ./.github/workflows/build-template.yml
+    with:
+      service_name: currencyservice
+
+  email:
+    needs: detect
+    if: needs.detect.outputs.email == 'true'
+    uses: ./.github/workflows/build-template.yml
+    with:
+      service_name: emailservice
+
+  payment:
+    needs: detect
+    if: needs.detect.outputs.payment == 'true'
+    uses: ./.github/workflows/build-template.yml
+    with:
+      service_name: paymentservice
+
+  productcatalog:
+    needs: detect
+    if: needs.detect.outputs.productcatalog == 'true'
+    uses: ./.github/workflows/build-template.yml
+    with:
+      service_name: productcatalogservice
+
+  recommendation:
+    needs: detect
+    if: needs.detect.outputs.recommendation == 'true'
+    uses: ./.github/workflows/build-template.yml
+    with:
+      service_name: recommendationservice
+
+  shipping:
+    needs: detect
+    if: needs.detect.outputs.shipping == 'true'
+    uses: ./.github/workflows/build-template.yml
+    with:
+      service_name: shippingservice
+
+  ad:
+    needs: detect
+    if: needs.detect.outputs.ad == 'true'
+    uses: ./.github/workflows/build-template.yml
+    with:
+      service_name: adservice

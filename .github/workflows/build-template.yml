@@ -1,0 +1,42 @@
+name: Build And Push Service
+
+on:
+  workflow_call:
+    inputs:
+      service_name:
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::667516053986:role/github-actions-eks-staging-demo
+          aws-region: ap-south-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ inputs.service_name }} ./src/${{ inputs.service_name }}
+
+      - name: Tag and Push Image
+        run: |
+          docker tag ${{ inputs.service_name }}:latest \
+          667516053986.dkr.ecr.ap-south-1.amazonaws.com/${{ inputs.service_name }}:latest
+
+          docker push \
+          667516053986.dkr.ecr.ap-south-1.amazonaws.com/${{ inputs.service_name }}:latest
+
+
