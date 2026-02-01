@@ -39,3 +39,4 @@ jobs:
           docker push \
           667516053986.dkr.ecr.ap-south-1.amazonaws.com/${{ inputs.service_name }}:latest
 
+
