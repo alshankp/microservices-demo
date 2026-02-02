@@ -29,3 +29,4 @@ EXPOSE 7070
 ENV ASPNETCORE_URLS=http://*:7070
 
 ENTRYPOINT ["/app/cartservice"]
+# rebuild trigger

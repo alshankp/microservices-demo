@@ -42,3 +42,4 @@ EXPOSE 7000
 ENTRYPOINT [ "node", "server.js" ]
 # trigger
 # rebuild
+# rebuild trigger

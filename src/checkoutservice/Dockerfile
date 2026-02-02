@@ -42,3 +42,4 @@ EXPOSE 5050
 ENTRYPOINT ["/src/checkoutservice"]
 # trigger
 # rebuild
+# rebuild trigger
