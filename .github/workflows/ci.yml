@@ -1,5 +1,10 @@
 name: Microservices CI Orchestrator
 
+concurrency:
+  group: microservices-build
+  cancel-in-progress: false
+
+
 on:
   push:
     branches: [ main ]
