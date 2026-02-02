@@ -29,14 +29,18 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t ${{ inputs.service_name }} ./src/${{ inputs.service_name }}
+          docker build -t ${{ inputs.service_name }}:${{ github.sha }} ./src/${{ inputs.service_name }}
+
 
       - name: Tag and Push Image
         run: |
-          docker tag ${{ inputs.service_name }}:latest \
-          667516053986.dkr.ecr.ap-south-1.amazonaws.com/${{ inputs.service_name }}:latest
+          docker tag \
+          ${{ inputs.service_name }}:${{ github.sha }} \
+          667516053986.dkr.ecr.ap-south-1.amazonaws.com/${{ inputs.service_name }}:${{ github.sha }}
+
 
           docker push \
-          667516053986.dkr.ecr.ap-south-1.amazonaws.com/${{ inputs.service_name }}:latest
+          667516053986.dkr.ecr.ap-south-1.amazonaws.com/${{ inputs.service_name }}:${{ github.sha }}
+
 
 
